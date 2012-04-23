@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:TabNavigator xmlns="weave.editors.*" 
+				 xmlns:ui="weave.ui.*"
+	     		 xmlns:mx="http://www.adobe.com/2006/mxml"
+				 implements="weave.api.ui.ILinkableObjectEditor">
+	
+	<mx:Script>
+		<![CDATA[
+			import weave.api.core.ILinkableObject;
+			import weave.api.linkBindableProperty;
+			import weave.api.linkSessionState;
+			import weave.data.AttributeColumns.FilteredColumn;
+			import weave.visualization.tools.PieChartHistogramTool;
+			
+			[Bindable] private var _target:PieChartHistogramTool = null;
+			public function setTarget(object:ILinkableObject):void
+			{
+				_target = object as PieChartHistogramTool;
+			}
+			
+			public function applyChanges():void
+			{
+				
+			}
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				cRampEditor.colorRamp = _target._plotter.chartColors;
+				linkSessionState(_target._plotter.binnedData, binEditor.binnedColumn);
+			}
+			
+		]]>
+	</mx:Script>
+		<mx:VBox label="Binning">
+			<ui:DynamicColumnComponent visTool="{_target}" label="data" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = (_target._plotter.binnedData.internalColumn as FilteredColumn).internalDynamicColumn"/>
+			<ui:BinningDefinitionEditor id="binEditor"/>
+		</mx:VBox>
+	
+		<mx:VBox id="attributesPanel" label="Labeling">
+			<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
+						 toolTip="Checking this box makes all of the following attributes visible in this tool's probe tooltip"
+						 creationComplete="linkBindableProperty(_target.includeToolAttributesInProbe,event.target,'selected')"/>
+			<ui:Indent label="Label angle">
+				<mx:HSlider id="labelAngleSlider"
+							snapInterval="0.25" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
+							dataTipFormatFunction="{function(v:Number):String { return String(Math.round(100*v))+'%' }}"
+							creationComplete="linkBindableProperty(_target._plotter.labelAngleRatio, event.target, 'value')"/>
+			</ui:Indent>
+			<ui:ColorRampEditor id="cRampEditor"/>
+		</mx:VBox>
+</mx:TabNavigator>
