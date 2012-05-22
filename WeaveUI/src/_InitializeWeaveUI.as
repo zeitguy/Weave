@@ -72,6 +72,8 @@ package
 	import weave.visualization.plotters.GeometryPlotter;
 	import weave.visualization.plotters.GridLinePlotter;
 	import weave.visualization.plotters.WMSPlotter;
+	import weave.visualization.tools.ScatterPlotTool;
+	import weave.visualization.tools.ScatterPlotToolEditor;
 
 	/**
 	 * Referencing this class will register WeaveAPI singleton implementations.
@@ -114,6 +116,7 @@ package
 		EditorManager.registerEditor(WMSPlotter, WMSPlotterEditor);
 		EditorManager.registerEditor(GridLinePlotter, GridLinePlotterEditor);
 		EditorManager.registerEditor(AxisLabelPlotter, AxisLabelPlotterEditor);
+		EditorManager.registerEditor(ScatterPlotTool, ScatterPlotToolEditor);
 		
 		EditorManager.registerEditor(ColorRamp, ColorRampEditor);
 //		EditorManager.registerEditor(HistogramTool, HistogramToolEditor);
