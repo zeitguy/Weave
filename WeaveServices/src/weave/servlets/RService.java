@@ -19,6 +19,9 @@
 
 package weave.servlets;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.rmi.RemoteException;
 
 import javax.servlet.ServletConfig;
@@ -40,10 +43,26 @@ public class RService extends GenericServlet
 	{
 	}
 
-	public void init(ServletConfig config) throws ServletException
+	private static Process rProcess = null; 
+	public synchronized void init(ServletConfig config) throws ServletException
 	{
 		super.init(config);
 		docrootPath = WeaveContextParams.getInstance(config.getServletContext()).getDocrootPath();
+		
+	    try {
+	    		rProcess = Runtime.getRuntime().exec(WeaveContextParams.getInstance(config.getServletContext()).getRServePath());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void destroy()
+	{
+		try {
+			rProcess.destroy();
+		} finally {
+			super.destroy();
+		}
 	}
 
 	private String docrootPath = "";

@@ -74,13 +74,15 @@ public class WeaveContextParams
 		tempPath = configPath + "/temp/";
 		uploadPath = configPath + "/upload/";
 		
+		rServePath = context.getInitParameter("RServePath");
+		
 		// make sure folders exist
 		new File(configPath).mkdirs();
 		new File(tempPath).mkdirs();
 		new File(uploadPath).mkdirs();
 	}
 	
-	private String docrootPath, tempPath, uploadPath, configPath;
+	private String docrootPath, tempPath, uploadPath, configPath, rServePath;
 
 	/**
 	 * @return The docroot path, ending in "/"
@@ -109,5 +111,12 @@ public class WeaveContextParams
 	public String getConfigPath()
 	{
 		return configPath;
+	}
+	/**
+	 * @return The path where Rserve.exe is stored
+	 */
+	public String getRServePath()
+	{
+		return rServePath;
 	}
 }
