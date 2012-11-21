@@ -81,6 +81,7 @@
 				linkBindableProperty(_plotter.ascendingOrder, legendControls.ascendingOrderCheck, 'selected');
 				linkBindableProperty(_plotter.itemLabelFunction, legendControls.txtLegendValuesFunction, 'text', 500);
 				linkBindableProperty(_plotter.legendTitleFunction, legendControls.txtLegendAttrNameFunc, 'text', 500);
+				linkBindableProperty(_plotter.colorGradientDraw, legendControls.chkColorGradient, 'selected');
 				legendControls.chkShowLegendAttrName.addEventListener(Event.CHANGE, toggleShowAttributeName);
 				
 				_plotter.legendTitleFunction.addGroupedCallback(this, updateMarginLabel, true);

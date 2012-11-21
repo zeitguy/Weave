@@ -22,12 +22,16 @@ package weave.visualization.plotters
 {
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
+	import flash.display.Sprite;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.utils.Dictionary;
 	
+	import mx.containers.Canvas;
+	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
@@ -117,6 +121,25 @@ package weave.visualization.plotters
 		 */		
 		public const legendTitleFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['string']));
 		
+		/**
+		 * This is a boolean to idenitify whether the legend should be a color gradient or not.
+		 */
+		public const colorGradientDraw:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		
+		private function drawColorGradient(destination:BitmapData):void
+		{
+			var binnedColumn:BinnedColumn = getInternalColorColumn().getInternalColumn() as BinnedColumn;
+			var binCount:int = binnedColumn.numberOfBins;
+			trace( WeaveAPI.StatisticsCache.getColumnStatistics(binnedColumn.internalDynamicColumn).getMax());
+			trace( WeaveAPI.StatisticsCache.getColumnStatistics(binnedColumn.internalDynamicColumn).getMin());
+			var ramp:ColorRamp = getInternalColorColumn().ramp;
+			var tempSprite:Canvas = new Canvas();
+			tempSprite.height = 20;
+			tempSprite.width = destination.width;
+			ramp.draw(tempSprite, false);
+			destination.draw(tempSprite);
+		}
+		
 		private const _binsOrdering:Array = [];
 		private var _binToBounds:Array = [];
 		private var _binToString:Array = [];
@@ -176,6 +199,8 @@ package weave.visualization.plotters
 		private var _drawBackground:Boolean = false; // this is used to check if we should draw the bins with no records.
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
+			if( colorGradientDraw.value )
+				return;
 			// draw the bins that have no records in them in the background
 			_drawBackground = true;
 			drawBinnedPlot(keySet.keys, dataBounds, screenBounds, destination);
@@ -184,11 +209,16 @@ package weave.visualization.plotters
 
 		override public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
-			drawAll(task.recordKeys, task.dataBounds, task.screenBounds, task.buffer);
+			if( colorGradientDraw.value )
+				drawColorGradient( task.buffer );
+			else
+				drawAll(task.recordKeys, task.dataBounds, task.screenBounds, task.buffer);
 			return 1;
 		}
 		private function drawAll(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
+			if( colorGradientDraw.value )
+				return;
 			var internalColorColumn:ColorColumn = getInternalColorColumn();
 			if (internalColorColumn == null)
 				return; // draw nothing
@@ -211,6 +241,8 @@ package weave.visualization.plotters
 		
 		protected function drawBinnedPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
+			if( colorGradientDraw.value )
+				return;
 			var internalColorColumn:ColorColumn = getInternalColorColumn();
 			if (!internalColorColumn)
 				return;
