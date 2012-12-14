@@ -27,6 +27,7 @@ package weave.visualization.plotters
 	import flash.geom.Rectangle;
 	import flash.utils.Dictionary;
 	
+	import mx.charts.CandlestickChart;
 	import mx.containers.Canvas;
 	
 	import weave.Weave;
@@ -52,6 +53,7 @@ package weave.visualization.plotters
 	import weave.primitives.ColorRamp;
 	import weave.utils.LegendUtils;
 	import weave.utils.LinkableTextFormat;
+	import weave.visualization.layers.LayerSettings;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
 	/**
@@ -124,20 +126,37 @@ package weave.visualization.plotters
 		/**
 		 * This is a boolean to idenitify whether the legend should be a color gradient or not.
 		 */
-		public const colorGradientDraw:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public const colorGradientDraw:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), changeFunc);
 		
-		private function drawColorGradient(destination:BitmapData):void
+		//Run spatialcallbacks to re-draw the circles that have records associated with them.
+		private function changeFunc():void
 		{
+			if( !colorGradientDraw.value )
+				spatialCallbacks.triggerCallbacks();				
+		}
+		
+		private var tempCanvas:Canvas = new Canvas();
+		
+		//Function for drawing the color gradient.
+		private function drawColorGradient(screenBounds:IBounds2D, destination:BitmapData):void
+		{
+			//There are some constant values in this function that should possibly be made more dynamic.
+			var fontSize:int = 30;
 			var binnedColumn:BinnedColumn = getInternalColorColumn().getInternalColumn() as BinnedColumn;
 			var binCount:int = binnedColumn.numberOfBins;
-			trace( WeaveAPI.StatisticsCache.getColumnStatistics(binnedColumn.internalDynamicColumn).getMax());
-			trace( WeaveAPI.StatisticsCache.getColumnStatistics(binnedColumn.internalDynamicColumn).getMin());
+			var maxNumber:Number =  WeaveAPI.StatisticsCache.getColumnStatistics(binnedColumn.internalDynamicColumn).getMax();
+			var minNumber:Number =  WeaveAPI.StatisticsCache.getColumnStatistics(binnedColumn.internalDynamicColumn).getMin();
 			var ramp:ColorRamp = getInternalColorColumn().ramp;
-			var tempSprite:Canvas = new Canvas();
-			tempSprite.height = 20;
-			tempSprite.width = destination.width;
-			ramp.draw(tempSprite, false);
-			destination.draw(tempSprite);
+			var startBounds:IBounds2D = new Bounds2D(screenBounds.getXNumericMin(), screenBounds.getYNumericMin(), fontSize, screenBounds.getYNumericMin() + fontSize );
+			var endBounds:IBounds2D = new Bounds2D(screenBounds.getXNumericMax() - fontSize, screenBounds.getYNumericMin(), screenBounds.getXNumericMax(), screenBounds.getYNumericMin() + fontSize)
+			tempCanvas.height = 20;
+			LegendUtils.renderLegendItemText(destination, String(minNumber) + "%", startBounds, 0);
+			LegendUtils.renderLegendItemText(destination, String(maxNumber) + "%", endBounds, 0);
+			tempCanvas.width = destination.width - (2 * fontSize + 10 );
+			tempCanvas.y = screenBounds.getYNumericMin();
+			tempCanvas.x = fontSize;
+			ramp.draw(tempCanvas, false);
+			destination.draw(tempCanvas, tempCanvas.transform.matrix);
 		}
 		
 		private const _binsOrdering:Array = [];
@@ -199,8 +218,6 @@ package weave.visualization.plotters
 		private var _drawBackground:Boolean = false; // this is used to check if we should draw the bins with no records.
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			if( colorGradientDraw.value )
-				return;
 			// draw the bins that have no records in them in the background
 			_drawBackground = true;
 			drawBinnedPlot(keySet.keys, dataBounds, screenBounds, destination);
@@ -210,7 +227,7 @@ package weave.visualization.plotters
 		override public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
 			if( colorGradientDraw.value )
-				drawColorGradient( task.buffer );
+				drawColorGradient( task.screenBounds, task.buffer );
 			else
 				drawAll(task.recordKeys, task.dataBounds, task.screenBounds, task.buffer);
 			return 1;
@@ -314,6 +331,8 @@ package weave.visualization.plotters
 		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
 		{
+			if( colorGradientDraw.value )
+				return [new Bounds2D(100 , 100, 101, 101)];
 			var internalColorColumn:ColorColumn = getInternalColorColumn();
 			if (!internalColorColumn)
 				return [ getReusableBounds() ];
