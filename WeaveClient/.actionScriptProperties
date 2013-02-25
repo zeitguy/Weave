@@ -33,7 +33,6 @@
           <crossDomainRslEntry autoExtract="true" policyFileUrl="" rslUrl="WeaveUISpark.swf"/>
         </crossDomainRsls>
       </libraryPathEntry>
-      <libraryPathEntry kind="3" linkType="1" path="C:/WeaveCPP/WeaveCPP/build/WeaveCPP.swc" useDefaultLinkType="false"/>
     </libraryPath>
     <sourceAttachmentPath/>
   </compiler>

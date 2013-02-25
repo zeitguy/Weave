@@ -55,12 +55,13 @@ package weave.application
 	import weave.Weave;
 	import weave.WeaveProperties;
 	import weave.api.WeaveAPI;
+	import weave.api.getCallbackCollection;
+	import weave.api.reportError;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.ICSVExportable;
 	import weave.api.data.IDataSource;
-	import weave.api.getCallbackCollection;
-	import weave.api.reportError;
 	import weave.api.ui.IVisTool;
+	import weave.async.AsyncConsole;
 	import weave.compiler.StandardLib;
 	import weave.core.ExternalSessionStateInterface;
 	import weave.core.LinkableBoolean;
@@ -479,6 +480,8 @@ package weave.application
 
 			this.addChild(VisTaskbar.instance);
 			WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN,this,handleKeyPress);
+			
+			addChild(new AsyncConsole());
 		}
 		
 		private function handleKeyPress():void
