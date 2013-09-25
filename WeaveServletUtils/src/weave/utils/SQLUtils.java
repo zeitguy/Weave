@@ -52,10 +52,13 @@ import java.util.Vector;
  * @author Kyle Monico
  * @author Yen-Fu Luo
  * @author Philip Kovac
+ * @author Patrick Stickney
+ * @author John Fallon
  */
 public class SQLUtils
 {
 	public static String MYSQL = "MySQL";
+	public static String SQLITE = "SQLite";
 	public static String POSTGRESQL = "PostgreSQL";
 	public static String SQLSERVER = "Microsoft SQL Server";
 	public static String ORACLE = "Oracle";
@@ -70,6 +73,8 @@ public class SQLUtils
 	{
 		if (dbms.equalsIgnoreCase(MYSQL))
 			return "com.mysql.jdbc.Driver";
+		if(dbms.equalsIgnoreCase(SQLITE))
+			return "org.sqlite.JDBC";
 		if (dbms.equalsIgnoreCase(POSTGRESQL))
 			return "org.postgis.DriverWrapper";
 		if (dbms.equalsIgnoreCase(SQLSERVER))
@@ -85,7 +90,7 @@ public class SQLUtils
 		try
 		{
 			String dbms = conn.getMetaData().getDatabaseProductName();
-			for (String match : new String[]{ ORACLE, SQLSERVER, MYSQL, POSTGRESQL })
+			for (String match : new String[]{ ORACLE, SQLSERVER, MYSQL, SQLITE, POSTGRESQL })
 				if (dbms.equalsIgnoreCase(match))
 					return match;
 			return dbms;
@@ -104,6 +109,8 @@ public class SQLUtils
 			return ORACLE;
 		if (connectString.startsWith("jdbc:mysql"))
 			return MYSQL;
+		if (connectString.startsWith("jdbc:sqlite"))
+			return SQLITE;
 		if (connectString.startsWith("jdbc:postgresql"))
 			return POSTGRESQL;
 		
@@ -138,6 +145,11 @@ public class SQLUtils
 			format = "jdbc:%s:thin:%s/%s@%s:%s";
 			//"jdbc:oracle:thin:<user>/<password>@<host>:<port>:<instance>"
 		}
+		else if(SQLITE.equalsIgnoreCase(dbms))
+		{
+			format = "jdbc:%s:%s";
+			// "jdbc:sqlite:C:/path/to/file/DataBase.db"
+		}
 		else // MySQL or PostGreSQL
 		{
 			format = "jdbc:%s://%s/%s?user=%s&password=%s";
@@ -164,6 +176,8 @@ public class SQLUtils
 		String result = "";
 		if (dbms.equalsIgnoreCase(ORACLE))
 			result = String.format(format, dbms.toLowerCase(), user, pass, host, database);
+		else if( dbms.equalsIgnoreCase(SQLITE))
+			result = String.format(format, dbms.toLowerCase(), database);
 		else
 			result = String.format(format, dbms.toLowerCase(), host, database, user, pass);
 
@@ -396,6 +410,10 @@ public class SQLUtils
 		{
 			openQuote = closeQuote = "`";
 		}
+		else if( dbms.equalsIgnoreCase(SQLITE) )
+		{
+			openQuote = closeQuote = "'";
+		}
 		else if (dbms.equalsIgnoreCase(POSTGRESQL) || dbms.equalsIgnoreCase(ORACLE))
 		{
 			openQuote = closeQuote = "\"";
@@ -437,6 +455,10 @@ public class SQLUtils
 		if (dbms.equalsIgnoreCase(MYSQL))
 		{
 			openQuote = closeQuote = '`';
+		}
+		else if (dbms.equalsIgnoreCase(SQLITE) )
+		{
+			openQuote = closeQuote = '\'';
 		}
 		else if (dbms.equalsIgnoreCase(POSTGRESQL) || dbms.equalsIgnoreCase(ORACLE))
 		{
