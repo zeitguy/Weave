@@ -535,6 +535,8 @@ public class SQLUtils
 			return String.format("cast(%s as char)", queryExpression);
 		if (dbms.equals(POSTGRESQL))
 			return String.format("cast(%s as varchar)", queryExpression);
+		if (dbms.equals(SQLITE))
+			return String.format("cast(%s as text)", queryExpression);
 		
 		// dbms type not supported by this function yet
 		return queryExpression;
@@ -948,6 +950,8 @@ public class SQLUtils
 			else
 				rs = md.getTables(null, schemaName, null, types);
 			
+			//May need a case here for SQLITE using sqlite_master as a catalog name.
+			
 			// use column index instead of name because sometimes the names are lower case, sometimes upper.
 			// column indices: 1=table_cat,2=table_schem,3=table_name,4=table_type,5=remarks
 			while (rs.next())
@@ -988,6 +992,8 @@ public class SQLUtils
 				rs = md.getColumns(null, schemaName.toUpperCase(), tableName, null);
 			else
 				rs = md.getColumns(null, schemaName, tableName, null);
+			
+			//May need a case here for SQLITE using sqlite_master as a catalog name.
 			
 			// use column index instead of name because sometimes the names are lower case, sometimes upper.
 			while (rs.next())
@@ -1341,6 +1347,7 @@ public class SQLUtils
 		boolean isSQLServer = dbms.equals(SQLSERVER);
 		boolean isMySQL = dbms.equals(MYSQL);
 		boolean isPostGreSQL = dbms.equals(POSTGRESQL);
+		boolean isSQLITE = dbms.equals(SQLITE);
 		
 		String query = null;
 		List<String> columns = new LinkedList<String>();
@@ -1944,6 +1951,9 @@ public class SQLUtils
 				return "\\N";
 			else if (dbms.equals(POSTGRESQL) || dbms.equals(SQLSERVER) || dbms.equals(ORACLE))
 				return ""; // empty string (no quotes)
+			else if(dbms.equals(SQLITE))
+				//Need to test this.
+				return "NULL";
 			else
 				throw new InvalidParameterException("Unsupported DBMS type: " + dbms);
 		}
