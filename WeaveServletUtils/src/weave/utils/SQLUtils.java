@@ -52,10 +52,13 @@ import java.util.Vector;
  * @author Kyle Monico
  * @author Yen-Fu Luo
  * @author Philip Kovac
+ * @author Patrick Stickney
+ * @author John Fallon
  */
 public class SQLUtils
 {
 	public static String MYSQL = "MySQL";
+	public static String SQLITE = "SQLite";
 	public static String POSTGRESQL = "PostgreSQL";
 	public static String SQLSERVER = "Microsoft SQL Server";
 	public static String ORACLE = "Oracle";
@@ -70,6 +73,8 @@ public class SQLUtils
 	{
 		if (dbms.equalsIgnoreCase(MYSQL))
 			return "com.mysql.jdbc.Driver";
+		if(dbms.equalsIgnoreCase(SQLITE))
+			return "org.sqlite.JDBC";
 		if (dbms.equalsIgnoreCase(POSTGRESQL))
 			return "org.postgis.DriverWrapper";
 		if (dbms.equalsIgnoreCase(SQLSERVER))
@@ -85,7 +90,7 @@ public class SQLUtils
 		try
 		{
 			String dbms = conn.getMetaData().getDatabaseProductName();
-			for (String match : new String[]{ ORACLE, SQLSERVER, MYSQL, POSTGRESQL })
+			for (String match : new String[]{ ORACLE, SQLSERVER, MYSQL, SQLITE, POSTGRESQL })
 				if (dbms.equalsIgnoreCase(match))
 					return match;
 			return dbms;
@@ -104,6 +109,8 @@ public class SQLUtils
 			return ORACLE;
 		if (connectString.startsWith("jdbc:mysql"))
 			return MYSQL;
+		if (connectString.startsWith("jdbc:sqlite"))
+			return SQLITE;
 		if (connectString.startsWith("jdbc:postgresql"))
 			return POSTGRESQL;
 		
@@ -138,6 +145,11 @@ public class SQLUtils
 			format = "jdbc:%s:thin:%s/%s@%s:%s";
 			//"jdbc:oracle:thin:<user>/<password>@<host>:<port>:<instance>"
 		}
+		else if(SQLITE.equalsIgnoreCase(dbms))
+		{
+			format = "jdbc:%s:%s";
+			// "jdbc:sqlite:C:/path/to/file/DataBase.db"
+		}
 		else // MySQL or PostGreSQL
 		{
 			format = "jdbc:%s://%s/%s?user=%s&password=%s";
@@ -164,6 +176,8 @@ public class SQLUtils
 		String result = "";
 		if (dbms.equalsIgnoreCase(ORACLE))
 			result = String.format(format, dbms.toLowerCase(), user, pass, host, database);
+		else if( dbms.equalsIgnoreCase(SQLITE))
+			result = String.format(format, dbms.toLowerCase(), database);
 		else
 			result = String.format(format, dbms.toLowerCase(), host, database, user, pass);
 
@@ -396,6 +410,10 @@ public class SQLUtils
 		{
 			openQuote = closeQuote = "`";
 		}
+		else if( dbms.equalsIgnoreCase(SQLITE) )
+		{
+			openQuote = closeQuote = "'";
+		}
 		else if (dbms.equalsIgnoreCase(POSTGRESQL) || dbms.equalsIgnoreCase(ORACLE))
 		{
 			openQuote = closeQuote = "\"";
@@ -437,6 +455,10 @@ public class SQLUtils
 		if (dbms.equalsIgnoreCase(MYSQL))
 		{
 			openQuote = closeQuote = '`';
+		}
+		else if (dbms.equalsIgnoreCase(SQLITE) )
+		{
+			openQuote = closeQuote = '\'';
 		}
 		else if (dbms.equalsIgnoreCase(POSTGRESQL) || dbms.equalsIgnoreCase(ORACLE))
 		{
@@ -513,6 +535,8 @@ public class SQLUtils
 			return String.format("cast(%s as char)", queryExpression);
 		if (dbms.equals(POSTGRESQL))
 			return String.format("cast(%s as varchar)", queryExpression);
+		if (dbms.equals(SQLITE))
+			return String.format("cast(%s as text)", queryExpression);
 		
 		// dbms type not supported by this function yet
 		return queryExpression;
@@ -874,6 +898,10 @@ public class SQLUtils
 				while (rs.next())
 					schemas.add(rs.getString(1)); // table_catalog
 			}
+			else if( md.getDatabaseProductName().equalsIgnoreCase(SQLITE))
+			{
+				schemas.add("sqlite_master");
+			}
 			else
 			{
 				rs = md.getSchemas();
@@ -921,6 +949,8 @@ public class SQLUtils
 			else
 				rs = md.getTables(null, schemaName, null, types);
 			
+			//May need a case here for SQLITE using sqlite_master as a catalog name.
+			
 			// use column index instead of name because sometimes the names are lower case, sometimes upper.
 			// column indices: 1=table_cat,2=table_schem,3=table_name,4=table_type,5=remarks
 			while (rs.next())
@@ -961,6 +991,8 @@ public class SQLUtils
 				rs = md.getColumns(null, schemaName.toUpperCase(), tableName, null);
 			else
 				rs = md.getColumns(null, schemaName, tableName, null);
+			
+			//May need a case here for SQLITE using sqlite_master as a catalog name.
 			
 			// use column index instead of name because sometimes the names are lower case, sometimes upper.
 			while (rs.next())
@@ -1314,6 +1346,7 @@ public class SQLUtils
 		boolean isSQLServer = dbms.equals(SQLSERVER);
 		boolean isMySQL = dbms.equals(MYSQL);
 		boolean isPostGreSQL = dbms.equals(POSTGRESQL);
+		boolean isSQLITE = dbms.equals(SQLITE);
 		
 		String query = null;
 		List<String> columns = new LinkedList<String>();
@@ -1917,6 +1950,9 @@ public class SQLUtils
 				return "\\N";
 			else if (dbms.equals(POSTGRESQL) || dbms.equals(SQLSERVER) || dbms.equals(ORACLE))
 				return ""; // empty string (no quotes)
+			else if(dbms.equals(SQLITE))
+				//Need to test this.
+				return "NULL";
 			else
 				throw new InvalidParameterException("Unsupported DBMS type: " + dbms);
 		}
