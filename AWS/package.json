@@ -26,7 +26,11 @@
     "grunt-ngmin": "~0.0.2",
     "time-grunt": "~0.1.0",
     "generator-angular": "~0.5.1",
-    "grunt-closurecompiler": "*"
+    "grunt-closurecompiler": "*",
+    "bower": "*",
+    "yo": "*",
+    "grunt-cli": "*",
+    "generator-karma": "*"
   },
   "engines": {
     "node": ">=0.8.0"
