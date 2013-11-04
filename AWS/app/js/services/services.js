@@ -147,11 +147,24 @@ angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '
                 console.log(result);
                 deferred.resolve(result);
             });
+<<<<<<< Upstream, based on branch 'aws' of local repository
         };
 
         aws.RClient.getListOfScripts(callbk);
         return prom;
+=======
+            console.log(result);
+        });
+      
+        // regardless of when the promise was or will be resolved or rejected,
+ 	    // then calls one of the success or error callbacks asynchronously as soon as the result
+     	// is available. The callbacks are called with a single argument: the result or rejection reason.
+        return deferred.promise.then(function(result){
+        	return result;
+        });
+>>>>>>> ef72820 merging franck's code
     };
+<<<<<<< Upstream, based on branch 'aws' of local repository
     this.availableScripts = this.getScriptsFromServer();
 
     this.getScriptMetadata = function () {
@@ -170,6 +183,10 @@ angular.module("aws.services").service("scriptobj", ['queryobj', '$rootScope', '
     };
     this.scriptMetadata = this.getScriptMetadata();
 
+=======
+    
+    
+>>>>>>> ef72820 merging franck's code
 }]);
 
 angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'queryobj',

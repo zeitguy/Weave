@@ -70,7 +70,7 @@ angular.module("aws.panelControllers", [])
 	
 	$scope.$watch('selection', function(){
 		queryobj['scriptSelected'] = $scope.selection;
-		scriptobj.updateMetadata();
+		scriptobj.getScriptMetadata();
 	});
 	$scope.$watch(function(){
 		return queryobj['scriptSelected'];
@@ -82,7 +82,7 @@ angular.module("aws.panelControllers", [])
 		return queryobj.conn.scriptLocation;
 	},
 		function(){
-		$scope.options = scriptobj.getScriptsFromServer();
+		$scope.options = scriptobj.getListOfScripts();
 	});
 	
 })
@@ -502,6 +502,7 @@ angular.module("aws.panelControllers", [])
 			
 =======
 		$scope.inputs = scriptobj.getScriptMetadata().inputs;
+<<<<<<< Upstream, based on branch 'aws' of local repository
 		scriptobj.updateMetadata();
 		scriptobj.scriptMetadata.then(function(result){
 			$scope.inputs = result.inputs;
@@ -511,7 +512,15 @@ angular.module("aws.panelControllers", [])
 				$scope.show[index] = false;
 			});
 >>>>>>> 1bf1fc0 progress on refactor for demo
+=======
+
+		angular.forEach($scope.inputs, function(input, index){
+			$scope.selection[index] = "";
+			$scope.sliderOptions[index] = angular.copy(sliderDefault);
+			$scope.show[index] = false;
+>>>>>>> ef72820 merging franck's code
 		});
+		
 	});
 })
 .controller("RDBPanelCtrl", function($scope, queryobj){
