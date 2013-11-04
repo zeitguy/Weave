@@ -30,11 +30,17 @@ angular.module("aws.panelControllers", [])
 	
 	function setSelect(){
 		if(queryobj[$scope.selectorId]){
+<<<<<<< Upstream, based on branch 'aws' of local repository
 			var arr = queryobj[$scope.selectorId];
 			angular.forEach(arr, function(item, index){
 				$scope.selection[index] = angular.toJson(item);
 			});
 			//$scope.selection = queryobj[$scope.selectorId];
+=======
+			$scope.selection = $.map(queryobj[$scope.selectorId], function(item){
+				return item.publicMetadata.title;
+			});
+>>>>>>> 1bf1fc0 progress on refactor for demo
 		}
 		$scope.$watch('selection', function(newVal, oldVal){
 			if(newVal != oldVal){
@@ -299,12 +305,21 @@ angular.module("aws.panelControllers", [])
 .controller("ContinuousFilterPanelCtrl", function($scope, queryobj, dataService){
 	
 })
+<<<<<<< Upstream, based on branch 'aws' of local repository
 .controller("ScriptOptionsPanelCtrl", function($scope, queryobj, scriptobj, $rootScope){
+=======
+.controller("ScriptOptionsPanelCtrl", function($scope, queryobj, scriptobj, dataService){
+>>>>>>> 1bf1fc0 progress on refactor for demo
 	
 	// Populate Labels
 	$scope.inputs = [];
+<<<<<<< Upstream, based on branch 'aws' of local repository
 	$scope.sliderDefault = {
 	        disabled: true,
+=======
+	var sliderDefault = {
+	        showLabel: true,
+>>>>>>> 1bf1fc0 progress on refactor for demo
 			range: true,
 			//max/min: querobj['some property']
 			max: 99,
@@ -312,6 +327,7 @@ angular.module("aws.panelControllers", [])
 			values: [10,25]
 	};
 	$scope.sliderOptions = [];
+<<<<<<< Upstream, based on branch 'aws' of local repository
 	$scope.options = queryobj.getSelectedColumns();
 	$scope.selection = [];
 	$scope.show = [];
@@ -335,11 +351,28 @@ angular.module("aws.panelControllers", [])
 			});
 		}
 	};
+=======
+	var ids = queryobj.getSelectedColumnIds();
+    $scope.options = dataService.giveMePrettyColsById(ids);
+	$scope.selection = [];
+	$scope.show = [];
+	$scope.type = "columns";
+	$scope.clusterOptions={};
+>>>>>>> 1bf1fc0 progress on refactor for demo
 	
+<<<<<<< Upstream, based on branch 'aws' of local repository
 	// build an array that will conform to what query handler expects. 
+=======
+	// retrieve selections, else create blanks;
+	if(queryobj['scriptOptions']){
+		$scope.selection = queryobj['scriptOptions'];
+	}
+
+>>>>>>> 1bf1fc0 progress on refactor for demo
 	var buildScriptOptions = function(){
 		var arr = [];
 		var obj;
+<<<<<<< Upstream, based on branch 'aws' of local repository
 		angular.forEach($scope.selection, function(item, index){
 			if(angular.isString(item)){
 				obj = item;
@@ -357,15 +390,33 @@ angular.module("aws.panelControllers", [])
 					}else{
 						obj.filter = [];
 					}
+=======
+		angular.forEach($scope.selection, function(item, i){
+			obj = "";
+			if(item != ""){
+				item = angular.fromJson(item);
+			
+				obj = {
+						id:item.id,
+						title:item.title
+				};
+				if(item.range){
+					obj.filter = [$scope.sliderOptions[i].values];
+>>>>>>> 1bf1fc0 progress on refactor for demo
 				}
 			}
+<<<<<<< Upstream, based on branch 'aws' of local repository
 			arr.push(obj);	
+=======
+			arr.push(obj);
+>>>>>>> 1bf1fc0 progress on refactor for demo
 		});
 		return arr;
 	};
 	
 	var setSliderOptions = function(index){
 		//get selection that changed
+<<<<<<< Upstream, based on branch 'aws' of local repository
 		if($scope.selection[index] != ""){
 			var selec = angular.fromJson($scope.selection[index]);
 			selec.range = angular.fromJson(selec.range);
@@ -379,13 +430,40 @@ angular.module("aws.panelControllers", [])
 				curr.max = selec.range[1];
 				$scope.sliderOptions[index] = curr;
 			}
+=======
+		var selec = angular.fromJson($scope.selection[index]);
+		selec.range = angular.fromJson(selec.range);
+		var curr = angular.fromJson($scope.sliderOptions[index]);
+		if(selec.range != []){
+			curr.values = selec.range;
+			curr.min = selec.range[0];
+			curr.max = selec.range[1];
+			$scope.sliderOptions[index] = curr;
+>>>>>>> 1bf1fc0 progress on refactor for demo
 		}
 	};
 	
 	// set up watch functions
+<<<<<<< Upstream, based on branch 'aws' of local repository
+=======
+	$scope.$watch('selection', function(newVal,oldVal){
+		//for(i = 0; i < newVal.length; i++){$scope.setRange(i);}
+		angular.forEach(newVal, function(item, i){
+			if(item === oldVal[i]){
+				//do nothing since they didn't change
+			}else{
+				//update the whole slider settings. 
+				setSliderOptions(i);
+				$scope.show[i] = true;
+			}
+		});
+		queryobj.scriptOptions = buildScriptOptions();
+	}, true);
+>>>>>>> 1bf1fc0 progress on refactor for demo
 	$scope.$watch(function(){
 		return queryobj.scriptSelected;
 	},function(newVal, oldVal){
+<<<<<<< Upstream, based on branch 'aws' of local repository
 		var temp = scriptobj.scriptMetadata;
 		temp.then(function(result){
 			if(result.scriptType == "columns"){
@@ -422,9 +500,19 @@ angular.module("aws.panelControllers", [])
 				$scope.inputs = [];
 			}
 			
+=======
+		$scope.inputs = scriptobj.getScriptMetadata().inputs;
+		scriptobj.updateMetadata();
+		scriptobj.scriptMetadata.then(function(result){
+			$scope.inputs = result.inputs;
+			angular.forEach($scope.inputs, function(input, index){
+				$scope.selection[index] = "";
+				$scope.sliderOptions[index] = angular.copy(sliderDefault);
+				$scope.show[index] = false;
+			});
+>>>>>>> 1bf1fc0 progress on refactor for demo
 		});
 	});
-
 })
 .controller("RDBPanelCtrl", function($scope, queryobj){
 	if(queryobj["conn"]){

@@ -13,9 +13,15 @@ angular.module("aws.services", []).service("queryobj", function () {
     this.title = "AlphaQueryObject";
     this.date = new Date();
     this.author = "UML IVPR AWS Team";
+<<<<<<< Upstream, based on branch 'aws' of local repository
     this.computationEngine = "R";
     this.scriptType = "columns";
     this.dataTable = {};
+=======
+    this.computationEngine = "r";
+    this.scriptType = "columns"
+    this.dataTable = {id:1,title:"default"};
+>>>>>>> 1bf1fc0 progress on refactor for demo
     this.conn = {
         serverType: 'MySQL',
         connectionType: 'RMySQL',
@@ -27,10 +33,15 @@ angular.module("aws.services", []).service("queryobj", function () {
         schema: 'data',
         dsn: 'brfss'
     };
+<<<<<<< Upstream, based on branch 'aws' of local repository
+=======
+    var columnCategories = ["geography", "indicators", "byvars", "timeperiods", "analytics"];
+>>>>>>> 1bf1fc0 progress on refactor for demo
     this.setQueryObject = function (jsonObj) {
         if (!jsonObj) {
             return undefined;
         }
+<<<<<<< Upstream, based on branch 'aws' of local repository
         this.title = jsonObj.title;
         this.date = jsonObj.data;
         this.author = jsonObj.author;
@@ -51,14 +62,47 @@ angular.module("aws.services", []).service("queryobj", function () {
         this.scriptSelected = jsonObj.scriptSelected;
         this.maptool = jsonObj.maptool;
     };
+=======
+        this.q = angular.copy(jsonObj);
+
+    }
+>>>>>>> 1bf1fc0 progress on refactor for demo
     return {
+<<<<<<< Upstream, based on branch 'aws' of local repository
+=======
+        q: this,
+>>>>>>> 1bf1fc0 progress on refactor for demo
         title: this.title,
         date: this.date,
         author: this.author,
         dataTable: this.dataTable,
         scriptType: this.scriptType,
+<<<<<<< Upstream, based on branch 'aws' of local repository
         computationEngine : this.computationEngine,
         conn: this.conn,
+=======
+        slideFilter: this.slideFilter,
+        getSelectedColumnIds: function(){
+            // loop through the possible column groups
+            // given an id, go get the minimal column object
+            // return that array of objects.
+            var ary = [];
+            var col = ["geography", "indicators", "byvars", "timeperiods", "analytics"];
+            var temp;
+            for (var i =0; i< col.length; i++){
+                if (this[col[i]]){
+                    angular.forEach(this[col[i]], function(item){
+                        if (item.hasOwnProperty('id')){
+                            ary.push(item.id);
+                        } else{
+                            ary.push(item);
+                        }
+                    });
+                }
+            }
+            return ary;
+        },
+>>>>>>> 1bf1fc0 progress on refactor for demo
         getSelectedColumns: function () {
             //TODO hackity hack hack
             var col = ["geography", "indicators", "byvars", "timeperiods", "analytics"];
@@ -257,6 +301,19 @@ angular.module("aws.services").service("dataService", ['$q', '$rootScope', 'quer
                 {
                     return response;
                 });
+            },
+            giveMePrettyColsById: function(ids){
+                return [].reduce(function(x){return x;}, fullColumnObjs.then(function(response){
+                    response.forEach(function(item){
+                    if (ids.indexOf(item.id)){
+                        return { id: item.id,
+                            title: item.publicMetadata.title,
+                            range: item.publicMetadata.var_range,
+                            var_type: item.publicMetadata.ui_type,
+                            var_label: item.publicMetadata.var_label
+                        };
+                    }});
+                }));
             }
         };
     }]);
