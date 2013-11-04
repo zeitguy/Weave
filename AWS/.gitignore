@@ -2,4 +2,6 @@
 /.buildpath
 /build
 /.settings
+/dist
 bower_components
+node_modules

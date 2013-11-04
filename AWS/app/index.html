@@ -1,70 +1,144 @@
 <!doctype html>
-<html lang="en" ng-app="aws">
+<!--[if lt IE 7]>
+<html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>
+<html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>
+<html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js"> <!--<![endif]-->
 <head>
-<meta charset="utf-8">
-<title>Analyst Work Station</title>
-<link rel="stylesheet" href="css/bootstrap.css" />
-<link rel="stylesheet" href="css/select2.css" />
-<link rel="stylesheet" href="css/ng-grid.css" />
-<link rel="stylesheet"
-	href="css/ui-lightness/jquery-ui-1.10.3.custom.css" />
-<link rel="stylesheet" href="css/app.css" />
-</head>
-<body>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title></title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width">
+    <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+    
+    <!-- <link rel="stylesheet" href="bower_components/select2/select2.css">
+    <link rel="stylesheet" href="bower_components/jquery-ui/themes/ui-lightness/jquery-ui.css"> -->
 
+    <!-- build:css styles/main.css -->
+    <link rel="stylesheet" href="bower_components/jquery-ui/themes/ui-lightness/jquery-ui.css">
+    <link rel="stylesheet" href="bower_components/select2/select2.css">
+    <link rel="stylesheet" href="styles\main.css">
+    <link rel="stylesheet" href="styles\bootstrap.css">
+    <!-- endbuild -->
+</head>
+<body ng-app="app">
+<!--[if lt IE 7]>
+<p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade
+    your browser</a> to improve your experience.</p>
+<![endif]-->
+
+<<<<<<< Upstream, based on branch 'aws' of local repository
 	<div ng-controller="LayoutCtrl">
 		<div id="container">
 			<div id="header" ng-controller="DataDialogCtrl">
 				<button id="dataButton" class="btn btn-primary" ng-click="openDialog('dataDialog')">Data Table</button>
 				<big>{{ dataTable.title }}</big>
 			</div>
+=======
+<!--[if lt IE 9]>
+<script src="bower_components/es5-shim/es5-shim.js"></script>
+<script src="bower_components/json3/lib/json3.min.js"></script>
+<![endif]-->
+>>>>>>> 408201c Updating PatrickR branch to new scaffolding
 
-			<div ng-include src="leftPanelUrl">
-				<!-- left panel goes here -->
-			</div>
+<!-- Add your site or application content here -->
+<div ng-controller="MainCtrl">
+    <div id="container">
+        <div id="header">
+            <div style="display: inline-block; margin-left : 30px">
+                Data Table: <select ui-select2 ng-model="dataTable" style=width:200px;>
+                <option></option>
+                <option ng-repeat="dt in dataTableList" value="{{dt}}">{{dt.title}}</option>
+            </select>
+            </div>
+            <div ng-controller="QueryImportExportCtrl" style="display: inline-block; float: right;">
+                <button ng-click="exportQueryObject({{ queryObject }})" class="btn btn-primary">Export Query</button>
+                <div class="file-upload">
+                    <label for="queryImport">Import Query</label>
+                    <input type="file" id="queryImport" name="queryImport" ng-submit="importQueryObject()" file-upload/>
+                </div>
+                <br>
+            </div>
+        </div>
+        <div ng-include src="leftPanelUrl">
+        </div>
 
 
-			<div id="center">
-				<div ng-view></div>
-				<div id="weavePanel" ng-include src="weaveInstancePanel"></div>
-				<div id="Log">
-					<h4>Log Box for errors and timing</h4>
-					<div id="LogBox"></div>
-				</div>
-			</div>
+        <div id="center">
+            <div id="analysis" ng-include src="analysisUrl"></div>
+            <div ng-controller="RunQueryCtrl" style="display: inline-block; float: right;">
+                    <button ng-click="runQuery()" class="btn btn-primary">Run</button>
+                    <button ng-click="clearWeave()" class="btn btn-primary">Clear</button>
+            </div>
+            <div id="weavePanel" ng-include src="weaveInstancePanel"></div>
+            <div id="Log">
+                <h4>Log Box for errors and timing</h4>
 
-		</div>
+                <div id="LogBox"></div>
+            </div>
+        </div>
+
+    </div>
 
 
-	</div>
+</div>
 
 
-	<!-- In production use:
-  <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
-  -->
-	<script src='lib/jquery/jquery.js'></script>
-	<script src='lib/jquery/jquery-ui.js'></script>
-	<script src='lib/jquery/jquery.FileReader.js'></script>
-	<script src='lib/select2.js'></script>
-	<script src='lib/angular/angular.js'></script>
-	<script src='lib/angular/angular-ui-select2.js'></script>
-	<script src='lib/angular/ui-bootstrap-0.5.0.js'></script>
-	<script src='lib/angular/angular-resource.js'></script>
-	<script src='lib/angular/ng-grid-2.0.7.debug.js'></script>
-	<script src='lib/angular/slider.js'></script>
-	<script src='lib/FileSaver.min.js'></script>
-	<script src='lib/swfobject.js'></script>
-	<script src='js/app.js'></script>
-	<script src='js/services/services.js'></script>
-	<script src='js/controllers/controllers.js'></script>
-	<script src='js/controllers/dataDialogCtrl.js'></script>
-	<script src='js/controllers/leftPanelCtrl.js'></script>
-	<script src='js/controllers/projectCtrl.js'></script>
-	<script src='js/filters/filters.js'></script>
-	<script src='js/directives/directives.js'></script>
-	<script src='js/controllers/viewControllers.js'></script>
-	<script src='js/controllers/panelControllers.js'></script>
-	<script src='../aws/aws.js'></script>
-	
+<script src="bower_components/jquery/jquery.js"></script>
+<script src="bower_components/jquery-ui/ui/jquery-ui.js"></script>
+<script src="bower_components/select2/select2.js"></script>
+<script src="bower_components/angular/angular.js"></script>
+<script src="bower_components/angular-ui-select2/src/select2.js"></script>
+<script src="bower_components/angular-bootstrap/ui-bootstrap.js"></script>
+<script src="bower_components/angular-resource/angular-resource.js"></script>
+
+
+
+<script src="bower_components/swfobject/swfobject/swfobject.js"></script>
+
+
+<!-- build:js scripts/plugins.js -->
+
+
+<!-- endbuild -->
+
+<!-- build:js scripts/modules.js -->
+<script src="bower_components/angular-resource/angular-resource.js"></script>
+<script src="bower_components/angular-cookies/angular-cookies.js"></script>
+<script src="bower_components/angular-sanitize/angular-sanitize.js"></script>
+<script src="bower_components/angular-route/angular-route.js"></script>
+
+<!-- endbuild -->
+
+<!-- build:js({.tmp,app}) scripts/scripts.js -->
+<script src="scripts/app.js"></script>
+<script src="scripts/services\QueryService.js"></script>
+<script src="scripts/services\DataService.js"></script>
+<script src="scripts/services\ScriptService.js"></script>
+<script src="scripts/controllers/main.js"></script>
+<script src="scripts/controllers\main.js"></script>
+<script src="scripts/directives\panel.js"></script>
+<script src="scripts/directives\fileUpload.js"></script>
+<script src="scripts/controllers\visualization.js"></script>
+<script src="scripts/controllers\analysis.js"></script>
+<script src="scripts/controllers\weave.js"></script>
+<script src="scripts/controllers\project.js"></script>
+<script src="scripts/controllers\leftPanel.js"></script>
+<script src="scripts/controllers\script.js"></script>
+<script src="scripts/controllers\runQuery.js"></script>
+<script src="scripts/controllers\mapToolPanel.js"></script>
+<script src="scripts/controllers\queryImportExport.js"></script>
+<script src="scripts/controllers\Frank.js"></script>
+<script src="scripts/filters\checkmark.js"></script>
+<script src="scripts/controllers\barChartToolPanel.js"></script>
+<script src="scripts/controllers\dataTableToolPanel.js"></script>
+<script src="scripts/controllers\colorColumnPanel.js"></script>
+<script src="scripts/directives\slider.js"></script>
+<!-- endbuild -->
+<script src="scripts/aws.min.js"></script>
 </body>
 </html>

@@ -1,0 +1,25 @@
+<div ng-controller="ScriptOptionsPanelCtrl">
+	<div class="portlet-header">
+		<span>{{panelTitle}}</span>
+	</div>
+	<div class="portlet-content">
+		<div ng-if="type == 'columns'">
+			<div ng-repeat="input in inputs">
+				Select column for {{input.param}} {{$parent.selection[$index]}}:<select ui-select2
+					ng-model="$parent.selection[$index]">
+					<option></option>
+					<option ng-repeat="opt in options" value="opt">{{opt.title}}</option>
+				</select>
+				<div ng-if='$parent.show[$index]'
+					ui-slider="$parent.sliderOptions[$index]"
+					ng-model="$parent.selection[$index].range"></div>
+				<!-- {{$parent.sliderOptions}} --> test {{$index}}
+			</div>
+		</div>
+		<div ng-if="type == 'cluster'">
+			<div ng-repeat="input in inputs">
+				{{input.description}}<input type='text' ng-model="clusterOptions[input.param]">
+			</div>
+		</div>
+	</div>
+</div>
