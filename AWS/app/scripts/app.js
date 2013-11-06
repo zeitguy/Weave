@@ -5,7 +5,7 @@ var app = angular.module('app', [
   'ngResource',
   'ngSanitize',
   'ngRoute',
-  'AWSApp,'
+  'AWSApp',
   'ui.bootstrap',
   'ui.select2',
   'ui.slider',
@@ -27,7 +27,8 @@ app.run(['$rootScope', function($rootScope){
     };
 }]);
 
-app.config(function ($routeProvider) {
+app.config(function ($routeProvider, $parseProvider) {
+    $parseProvider.unwrapPromises(true);
     $routeProvider
       /*.when('/', {
         templateUrl: 'views/main.html',
@@ -46,3 +47,4 @@ app.config(function ($routeProvider) {
       });
   });
 
+var AWSApp = angular.module('AWSApp',[]);
