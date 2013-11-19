@@ -109,6 +109,7 @@
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IColumnWrapper;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkableObjectIsBusy;
@@ -330,7 +331,7 @@
 			{
 				// found the attribute name in the list, now check if it's a compatible object
 				var obj:Object = _attrs[targetAttributeNumber.value];
-				var compatible:Boolean = obj is DynamicColumn || obj is ILinkableHashMap;
+				var compatible:Boolean = obj is IColumnWrapper || obj is ILinkableHashMap;
 				layoutViewStack.enabled = compatible;
 				
 				// make sure the correct item is selected
@@ -397,7 +398,7 @@
 				}
 				
 				// using the index, get the corresponding "SelectableAttribute" from the tool
-				var dynamicColumn:DynamicColumn = _attrs[index] as DynamicColumn;
+				var dynamicColumn:DynamicColumn = ColumnUtils.hack_findInternalDynamicColumn(_attrs[index] as IColumnWrapper);
 				var hashMap:ILinkableHashMap = _attrs[index] as ILinkableHashMap;
 				
 				if (hashMap)
