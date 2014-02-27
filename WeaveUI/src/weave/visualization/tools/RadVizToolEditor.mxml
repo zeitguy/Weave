@@ -607,6 +607,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							 creationComplete="linkBindableProperty(_target._plotter.showAnnulusCenter, event.target, 'selected')"
 							 paddingLeft="40"/>
 			
+			<mx:CheckBox id="pointSizeCheckBox" label="Use Outer Radius for Point Size" labelPlacement="right"
+						 creationComplete="linkBindableProperty(_target._plotter.useOuterRadiusForPointSize, event.target, 'selected')"
+						 paddingLeft="40"/>
+			
 			<ui:Indent label="Point Sensitivity Columns"/>
 			
 			<ui:CheckBoxList id="pointSensitivityChecklist"/>

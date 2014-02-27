@@ -52,6 +52,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableVariable;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
+	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.DataSources.CSVDataSource;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
@@ -121,6 +122,7 @@ package weave.visualization.plotters
 		private var pointSensitivityColumns:Array = [];
 		private var annCenterColumns:Array = [];
 		public const showAnnulusCenter:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public const useOuterRadiusForPointSize:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), setPointSizeColumnToOuterRadius);
 		
 		private function verifyThresholdValue(value:*):Boolean
 		{
@@ -145,6 +147,28 @@ package weave.visualization.plotters
 					annCenterColumns.push(columns.getObjects()[i]);
 				}
 			}
+		}
+		
+		private function setPointSizeColumnToOuterRadius():void
+		{
+			var tempColumn:NumberColumn;
+			
+			var cols:Array = columns.getObjects();
+			var keys:Array;
+			var outerRadii:Array;
+			if(cols.length){
+				keys = (cols[0] as IAttributeColumn).keys;
+				// tempColumn.setMetadata((cols[0] as IAttributeColumn).getMetadata("keyType")):
+				
+			}
+			
+			for each(var key:IQualifiedKey in keys)
+			{
+				outerRadii.push(getOuterRadius(key));
+			}
+			
+			tempColumn.setRecords(Vector.<IQualifiedKey>(keys), Vector.<Number>(outerRadii));
+			//radiusColumn.requestLocalObject(NumberColumn, false);
 		}
 		/**
 		 * LinkableHashMap of RadViz dimension locations: 
@@ -679,7 +703,7 @@ package weave.visualization.plotters
 				annCenterX = 0;
 				annCenterY = 0;
 
-				/*if the keytype is different from the keytype of points visualized on Rad Vis than ignore*/
+				/*if the keytype is different from the keytype of points visualized on Rad Vis then ignore*/
 				if(key.keyType != requiredKeyType)
 				{
 					return;
@@ -776,6 +800,155 @@ package weave.visualization.plotters
 				}
 				graphics.endFill();
 			}
+		}
+		
+		private function getInnerRadius(key:IQualifiedKey):Number
+		{
+			
+			var normArray:Array = (localNormalization.value) ? keyNormMap[key] : keyGlobalNormMap[key];
+			var column:IAttributeColumn;
+			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
+			var value:Number;
+			var psCols:Array = pointSensitivityColumns;
+			var cols:Array = columns.getObjects();
+			var annCols:Array = annCenterColumns;
+			var linkLengths:Array;
+			var eta:Number = getEtaTerm(key);
+			
+			// compute the link lengths for a record
+			for (var i:Number = 0; i < psCols.length; i++)
+			{
+				column = psCols[i];
+				stats = WeaveAPI.StatisticsCache.getColumnStatistics(column);
+				value = normArray ? normArray[i] : stats.getNorm(key);
+				if(isNaN(value))
+				{
+					value = 0;	
+				}
+				linkLengths.push(value/eta);
+			}
+			
+			var maxLength:Number = Math.max.apply(null, linkLengths);
+			
+			var innerRadius:Number = 0;
+			var outerRadius:Number = 0;
+			var temp:Number;
+			
+			// the outer Radius is the sum of all the linkLengths
+			// the inner Radius is the difference between the longest arm
+			// and the remaining arms, and 0 if the difference is negative
+			for (i = 0; i < linkLengths.length; i++)
+			{
+				outerRadius += linkLengths[i];
+				if (linkLengths[i] != maxLength){
+					temp += linkLengths[i];
+				}
+			}
+			
+			innerRadius = maxLength - temp;
+			
+			if (innerRadius < 0) {
+				innerRadius = 0;
+			}   
+			
+			return innerRadius;
+		}
+			
+		private function getOuterRadius(key:IQualifiedKey):Number
+		{
+			var normArray:Array = (localNormalization.value) ? keyNormMap[key] : keyGlobalNormMap[key];
+			var column:IAttributeColumn;
+			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
+			var value:Number;
+			var psCols:Array = pointSensitivityColumns;
+			var cols:Array = columns.getObjects();
+			var annCols:Array = annCenterColumns;
+			var linkLengths:Array;
+			var eta:Number = getEtaTerm(key);
+			
+			// compute the link lengths for a record
+			for (var i:Number = 0; i < psCols.length; i++)
+			{
+				column = psCols[i];
+				stats = WeaveAPI.StatisticsCache.getColumnStatistics(column);
+				value = normArray ? normArray[i] : stats.getNorm(key);
+				if(isNaN(value))
+				{
+					value = 0;	
+				}
+				linkLengths.push(value/eta);
+			}
+			
+			var maxLength:Number = Math.max.apply(null, linkLengths);
+			
+			var outerRadius:Number = 0;
+			
+			// the outer Radius is the sum of all the linkLengths
+			// the inner Radius is the difference between the longest arm
+			// and the remaining arms, and 0 if the difference is negative
+			for (i = 0; i < linkLengths.length; i++)
+			{
+				outerRadius += linkLengths[i];
+			}
+			
+			return outerRadius;
+		}
+		
+		private function getEtaTerm(key:IQualifiedKey):Number
+		{
+			var eta:Number;
+			var normArray:Array = (localNormalization.value) ? keyNormMap[key] : keyGlobalNormMap[key];
+			var psCols:Array = pointSensitivityColumns;
+			var cols:Array = columns.getObjects();
+			var annCols:Array = annCenterColumns;
+			
+			for (var i:Number = 0; i < cols.length; i++)
+			{
+				var column:IAttributeColumn = cols[i];
+				var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
+				var value:Number = normArray ? normArray[i] : stats.getNorm(key);
+				if (isNaN(value))
+				{
+					value = 0;
+				}
+				eta += value;
+			}
+			return eta;
+		}
+		
+		private function getAnnulusCenter(key:IQualifiedKey):Point
+		{
+			var normArray:Array = (localNormalization.value) ? keyNormMap[key] : keyGlobalNormMap[key];
+			var column:IAttributeColumn;
+			var stats:IColumnStatistics;
+			var value:Number;
+			var annCenterX:Number;
+			var annCenterY:Number;
+			var name:String;
+			var anchor:AnchorPoint;
+			var psCols:Array = pointSensitivityColumns;
+			var cols:Array = columns.getObjects();
+			var annCols:Array = annCenterColumns;
+			
+			var eta:Number = getEtaTerm(key);
+			//trace(linkLengths);
+			// compute the annulus center for a record
+			for (var i:Number = 0; i < annCols.length; i++)
+			{
+				column = annCols[i];
+				stats = WeaveAPI.StatisticsCache.getColumnStatistics(column);
+				value = normArray ? normArray[i] : stats.getNorm(key);
+
+				if(isNaN(value))
+				{
+					value = 0
+				}
+				name = normArray ? columnTitleMap[column] : columns.getName(column);
+				anchor = anchors.getObject(name) as AnchorPoint;
+				annCenterX += (value * anchor.x.value)/eta;
+				annCenterY += (value * anchor.y.value)/eta;
+			}
+			return new Point(annCenterX, annCenterY);
 		}
 		
 		private function changeAlgorithm():void
