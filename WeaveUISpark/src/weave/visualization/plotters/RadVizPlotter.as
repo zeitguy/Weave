@@ -157,12 +157,13 @@ package weave.visualization.plotters
 		
 		private function setPointSizeColumnToOuterRadius():void
 		{
+			radiusColumn.removeObject();
 			var tempColumn:NumberColumn = radiusColumn.requestLocalObject(NumberColumn, false);
 			tempColumn.setMetadata(<attribute title="Outer Radius"/>);
 			
 			if(useOuterRadiusForPointSize.value)
 			{
-				var cols:Array = columns.getObjects();
+				var cols:Array = pointSensitivityColumns;
 				var keys:Array = [];
 				var outerRadii:Array = [];
 	
@@ -176,7 +177,11 @@ package weave.visualization.plotters
 					outerRadii.push(getOuterRadius(key));
 				}
 				
-				tempColumn.setRecords(Vector.<IQualifiedKey>(keys), Vector.<Number>(outerRadii));
+				if(keys.length){
+					tempColumn.setRecords(Vector.<IQualifiedKey>(keys), Vector.<Number>(outerRadii));
+				} else {
+					radiusColumn.removeObject();
+				}
 			} else {
 				radiusColumn.removeObject();
 			}
