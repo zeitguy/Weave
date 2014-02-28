@@ -26,8 +26,11 @@ package weave.visualization.plotters
 	import flash.geom.Rectangle;
 	import flash.utils.Dictionary;
 	
+	import mx.utils.ColorUtil;
+	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
+	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newDisposableChild;
 	import weave.api.primitives.IBounds2D;
@@ -77,6 +80,7 @@ package weave.visualization.plotters
 				throw new Error("not a radviz plotter");
 			this.anchors = registerSpatialProperty(anchors);
 			this.anchors.childListCallbacks.addGroupedCallback(this, handleAnchorsChange, true);
+			registerSpatialProperty((_radviz as RadVizPlotter).pointSensitivitySelection);
 			spatialCallbacks.triggerCallbacks();
 		}
 		private var _radviz:IPlotter;
@@ -203,7 +207,7 @@ package weave.visualization.plotters
 					graphics.beginFill(anchorColorMap[key.localName]);
 				else if (doCDLayout)
 				{
-					//color the dimensional anchors according to the class hey belong to
+					//color the dimensional anchors according to the class they belong to
 					var classStr:String = getClassFromAnchor(key.localName);
 					var cc:ColorColumn = Weave.defaultColorColumn;
 					var binColumn:BinnedColumn = cc.getInternalColumn() as BinnedColumn;
@@ -213,6 +217,21 @@ package weave.visualization.plotters
 					if (isFinite(color))
 						graphics.beginFill(color);
 				}
+				
+				// color the point sensitivity column in red
+				if( (_radviz as RadVizPlotter).pointSensitivityColumns.length ) 
+				{
+					for each(var psColumn:IAttributeColumn in (_radviz as RadVizPlotter).pointSensitivityColumns)
+					{
+						// check if the psColumn is an anchor
+						if ( (_radviz as RadVizPlotter).columns.getName((psColumn as IAttributeColumn)) == key.localName ) 
+						{
+							// color in red
+							graphics.beginFill(0xFF0000)
+						}
+					}
+				}
+				
 				graphics.drawCircle(tempPoint.x, tempPoint.y, anchorRadius.value);				
 				graphics.endFill();
 				

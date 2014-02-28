@@ -19,6 +19,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 
 package weave.visualization.plotters
 {
+	import avmplus.getQualifiedClassName;
+	
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	import flash.display.Shape;
@@ -33,6 +35,7 @@ package weave.visualization.plotters
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
@@ -43,6 +46,7 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.radviz.ILayoutAlgorithm;
 	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
 	import weave.api.ui.IPlotTask;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
@@ -53,6 +57,7 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.NumberColumn;
+	import weave.data.ColumnReferences.HierarchyColumnReference;
 	import weave.data.DataSources.CSVDataSource;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
@@ -62,6 +67,7 @@ package weave.visualization.plotters
 	import weave.radviz.NearestNeighborLayoutAlgorithm;
 	import weave.radviz.RandomLayoutAlgorithm;
 	import weave.utils.ColumnUtils;
+	import weave.utils.HierarchyUtils;
 	import weave.utils.RadVizUtils;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
@@ -87,7 +93,7 @@ package weave.visualization.plotters
 			getCallbackCollection(filteredKeySet).addGroupedCallback(this, handleColumnsChange, true);
 			getCallbackCollection(this).addImmediateCallback(this, clearCoordCache);
 			columns.addGroupedCallback(this, handleColumnsChange);
-
+			pointSensitivitySelection.addImmediateCallback(this, setPointSizeColumnToOuterRadius);
 			//pointSensitivityColumns.addGroupedCallback(this, handlePointSensitivityColumnsChange);
 		}
 		private function handleColumnsListChange():void
@@ -119,7 +125,7 @@ package weave.visualization.plotters
 		public const localNormalization:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
 		public const probeLineNormalizedThreshold:LinkableNumber = registerLinkableChild(this,new LinkableNumber(0, verifyThresholdValue));
 		
-		private var pointSensitivityColumns:Array = [];
+		public var pointSensitivityColumns:Array = [];
 		private var annCenterColumns:Array = [];
 		public const showAnnulusCenter:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		public const useOuterRadiusForPointSize:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), setPointSizeColumnToOuterRadius);
@@ -151,24 +157,29 @@ package weave.visualization.plotters
 		
 		private function setPointSizeColumnToOuterRadius():void
 		{
-			var tempColumn:NumberColumn;
+			var tempColumn:NumberColumn = radiusColumn.requestLocalObject(NumberColumn, false);
+			tempColumn.setMetadata(<attribute title="Outer Radius"/>);
 			
-			var cols:Array = columns.getObjects();
-			var keys:Array;
-			var outerRadii:Array;
-			if(cols.length){
-				keys = (cols[0] as IAttributeColumn).keys;
-				// tempColumn.setMetadata((cols[0] as IAttributeColumn).getMetadata("keyType")):
-				
-			}
-			
-			for each(var key:IQualifiedKey in keys)
+			if(useOuterRadiusForPointSize.value)
 			{
-				outerRadii.push(getOuterRadius(key));
+				var cols:Array = columns.getObjects();
+				var keys:Array = [];
+				var outerRadii:Array = [];
+	
+				if(cols.length){
+					var column:IAttributeColumn = cols[0] as IAttributeColumn;
+					keys = column.keys;
+				}
+				
+				for each(var key:IQualifiedKey in keys)
+				{
+					outerRadii.push(getOuterRadius(key));
+				}
+				
+				tempColumn.setRecords(Vector.<IQualifiedKey>(keys), Vector.<Number>(outerRadii));
+			} else {
+				radiusColumn.removeObject();
 			}
-			
-			tempColumn.setRecords(Vector.<IQualifiedKey>(keys), Vector.<Number>(outerRadii));
-			//radiusColumn.requestLocalObject(NumberColumn, false);
 		}
 		/**
 		 * LinkableHashMap of RadViz dimension locations: 
@@ -807,12 +818,12 @@ package weave.visualization.plotters
 			
 			var normArray:Array = (localNormalization.value) ? keyNormMap[key] : keyGlobalNormMap[key];
 			var column:IAttributeColumn;
-			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
+			var stats:IColumnStatistics;
 			var value:Number;
 			var psCols:Array = pointSensitivityColumns;
 			var cols:Array = columns.getObjects();
 			var annCols:Array = annCenterColumns;
-			var linkLengths:Array;
+			var linkLengths:Array = [];
 			var eta:Number = getEtaTerm(key);
 			
 			// compute the link lengths for a record
@@ -858,12 +869,12 @@ package weave.visualization.plotters
 		{
 			var normArray:Array = (localNormalization.value) ? keyNormMap[key] : keyGlobalNormMap[key];
 			var column:IAttributeColumn;
-			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
+			var stats:IColumnStatistics;
 			var value:Number;
 			var psCols:Array = pointSensitivityColumns;
 			var cols:Array = columns.getObjects();
 			var annCols:Array = annCenterColumns;
-			var linkLengths:Array;
+			var linkLengths:Array = [];
 			var eta:Number = getEtaTerm(key);
 			
 			// compute the link lengths for a record
@@ -896,7 +907,7 @@ package weave.visualization.plotters
 		
 		private function getEtaTerm(key:IQualifiedKey):Number
 		{
-			var eta:Number;
+			var eta:Number = 0;
 			var normArray:Array = (localNormalization.value) ? keyNormMap[key] : keyGlobalNormMap[key];
 			var psCols:Array = pointSensitivityColumns;
 			var cols:Array = columns.getObjects();
