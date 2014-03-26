@@ -201,7 +201,8 @@ package weave.application
 			getCallbackCollection(Weave.properties).addGroupedCallback(this, setupVisMenuItems);
 			Weave.properties.backgroundColor.addImmediateCallback(this, invalidateDisplayList, true);
 
-			ExternalInterface.addCallback('loadFile', loadFile);
+			if (ExternalInterface.available)
+				ExternalInterface.addCallback('loadFile', loadFile);
 			WeaveAPI.initializeExternalInterface();
 
 			getFlashVars();
@@ -806,8 +807,6 @@ package weave.application
 				createToolMenuItem(Weave.properties.showProbeWindow, lang("Mouseover Window"), createGlobalObject, [ProbeToolTipWindow, "ProbeToolTipWindow"]);
 				createToolMenuItem(Weave.properties.showEquationEditor, lang("Equation Column Editor"), DraggablePanel.openStaticInstance, [EquationEditor]);
 				createToolMenuItem(Weave.properties.showCollaborationEditor, lang("Collaboration Settings"), DraggablePanel.openStaticInstance, [CollaborationEditor]);
-
-	
 
 				var _this:VisApplication = this;
 
