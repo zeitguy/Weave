@@ -70,8 +70,8 @@ package weave.visualization.plotters
 	import weave.radviz.NearestNeighborLayoutAlgorithm;
 	import weave.radviz.RandomLayoutAlgorithm;
 	import weave.utils.ColumnUtils;
-	import weave.utils.HierarchyUtils;
 	import weave.utils.EquationColumnLib;
+	import weave.utils.HierarchyUtils;
 	import weave.utils.RadVizUtils;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
@@ -1202,6 +1202,11 @@ package weave.visualization.plotters
 		}
 		
 		private var _algorithm:ILayoutAlgorithm = newSpatialProperty(GreedyLayoutAlgorithm);
+		
+		public function reverseEngineer(key:IQualifiedKey, point:Point):void
+		{
+			trace(key, point);	
+		}
 		
 		// algorithms
 		[Bindable] public var algorithms:Array = [RANDOM_LAYOUT, GREEDY_LAYOUT, NEAREST_NEIGHBOR, INCREMENTAL_LAYOUT, BRUTE_FORCE];
