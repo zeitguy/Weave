@@ -86,7 +86,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public var latestjoinedColumnKeys:Array = new Array();
 			
 			public const enableProbeLines:LinkableBoolean = registerLinkableChild(this,new LinkableBoolean(true));
-			public const enabelAnnuliCircles:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+			public const enableAnnuliCircles:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 			
 			override protected function constructor():void
 			{
@@ -145,6 +145,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				WeaveAPI.StageUtils.addEventCallback(MouseEvent.MOUSE_UP, this, handleMouseUp);
 				
 				_selection.addGroupedCallback(this,drawProbeLinesForSelectionKeySet);
+				_selection.addGroupedCallback(this, drawAnnuliCirclesForSelectionKeySet);
 			}
 			
 			private var tempBounds:Bounds2D = new Bounds2D();
@@ -182,13 +183,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				super.updateDisplayList(unscaledWidth,unscaledHeight);
 				drawProbeLinesForSelectionKeySet();
+				drawAnnuliCirclesForSelectionKeySet();
 				drawProbeLinesForSelectedAnchor();
 			}
 			
 			private function handlePlotterChanges():void
 			{
 				handlePanelTitleChange();
-				
+				drawAnnuliCirclesForSelectionKeySet();
 				drawProbeLinesForSelectionKeySet();
 			}
 			
@@ -329,7 +331,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			private function drawAnnuliCirclesForSelectionKeySet():void
 			{
-				if(!enabelAnnuliCircles.value) return;
+				if(!enableAnnuliCircles.value) return;
 				var probeKeySet:IKeySet = (mainLayerSettings.probeFilter.internalObject) as IKeySet;
 				if (!probeKeySet)
 					return;
