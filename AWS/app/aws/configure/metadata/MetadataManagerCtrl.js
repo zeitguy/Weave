@@ -127,17 +127,18 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
 	 
 	 var updateMetadata = function(metadata) {
 		 var jsonaws_metadata = angular.toJson(convertToMetadataFormat(metadata));
-		 queryService.updateEntity("mysql", 
-			"pass", 
-			$scope.selectedColumnId, { 
-										publicMetadata : { 
-															aws_metadata : jsonaws_metadata 
-														}
-										}
-		 ).then(function() {
-     		 $scope.maxTasks = 100;
-			 $scope.progressValue = 100;
-		 });
+		 alert("Metadata editing is not supported on this demo.");
+//		 queryService.updateEntity("", 
+//			"", 
+//			$scope.selectedColumnId, { 
+//										publicMetadata : { 
+//															aws_metadata : jsonaws_metadata 
+//														}
+//										}
+//		 ).then(function() {
+//     		 $scope.maxTasks = 100;
+//			 $scope.progressValue = 100;
+//		 });
 	 };
 	 
 	$scope.refresh = function() {
@@ -148,47 +149,49 @@ angular.module('aws.configure.metadata', []).controller("MetadataManagerCtrl", f
     
 	$scope.$watch('fileUpload', function(n, o) {
             if ($scope.fileUpload && $scope.fileUpload.then) {
-              $scope.fileUpload.then(function(result) {
-                var metadataArray = queryService.CSVToArray(result.contents);
-        	  if($scope.selectedColumnId) {
-        		  aws.DataClient.getEntityChildIds($scope.selectedColumnId, function(idsArray) {
-        			  aws.DataClient.getDataColumnEntities(idsArray, function(columns) {
-            			  if(columns.length) {
-            				  for (var i = 1; i < metadataArray.length; i++) {
-            					  	var metadata = metadataArray[i][1];
-            						var title = metadataArray[i][0];
-            						$scope.progressValue = 0;
-            						var end = columns.length;
-            						$scope.maxTasks = end;
-            						var id;
-            						for(var j = 0; j < columns.length; j++) {
-            							if(columns[j].publicMetadata.title == title) {
-            								id = columns[j].id;
-            								break; // we assume there is only one match
-            							}
-            						}
-    	        					if(id) {
-    	        						queryService.updateEntity("mysql", 
-    	        								"pass", 
-    	        								 id, { 
-    	        															publicMetadata : { 
-    	        																				aws_metadata : metadata.replace(/\s/g, '')
-    	        																			}
-    	        															}
-    	        							 ).then(function() {
-    	        								 $scope.progressValue++;
-    	        							 });								
-    	        					}
-    							 }
-            			  } else {
-            				  console.log("selected entity is not a table or table does not contain any columns.");
-            			  }
-        			  });
-        		  });
-        	  } else {
-  					console.log("no selected tables");
-        	  };
-              });
+            	alert("File uploading is not supported in this demo.");
+//            	$scope.fileUpload.then(function(result) {
+//                var metadataArray = queryService.CSVToArray(result.contents);
+//        	  if($scope.selectedColumnId) {
+//        		  aws.DataClient.getEntityChildIds($scope.selectedColumnId, function(idsArray) {
+//        			  aws.DataClient.getDataColumnEntities(idsArray, function(columns) {
+//            			  if(columns.length) {
+//            				  for (var i = 1; i < metadataArray.length; i++) {
+//            					  	var metadata = metadataArray[i][1];
+//            						var title = metadataArray[i][0];
+//            						$scope.progressValue = 0;
+//            						var end = columns.length;
+//            						$scope.maxTasks = end;
+//            						var id;
+//            						for(var j = 0; j < columns.length; j++) {
+//            							if(columns[j].publicMetadata.title == title) {
+//            								id = columns[j].id;
+//            								break; // we assume there is only one match
+//            							}
+//            						}
+//    	        					if(id) {
+//    	        						alert("Metadata Editing is not available in this demo.");
+//    	        						queryService.updateEntity("", 
+//    	        								"", 
+//    	        								 id, { 
+//    	        															publicMetadata : { 
+//    	        																				aws_metadata : metadata.replace(/\s/g, '')
+//    	        																			}
+//    	        															}
+//    	        							 ).then(function() {
+//    	        								 $scope.progressValue++;
+//    	        							 });								
+//   	        					}
+//  							 }
+//            			  } else {
+//            				  console.log("selected entity is not a table or table does not contain any columns.");
+//            			  }
+//        			  });
+//        		  });
+//        	  } else {
+//  					console.log("no selected tables");
+//        	  };
+//              });
             }
           }, true);
           

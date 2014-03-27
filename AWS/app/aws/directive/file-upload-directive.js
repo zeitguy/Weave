@@ -13,7 +13,7 @@ angular.module('aws.directives.fileUpload', [])
               });
               $(elem).on('click', function(args) {
                 deferred = $q.defer();
-                console.log(args);
+                //console.log(args);
                 $scope.fileUpload = deferred.promise;
               });
               $(elem).find('input').on("change", function(evt) {

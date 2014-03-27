@@ -71,9 +71,10 @@ angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan'])
           $scope.$watch('fileUpload', function(n, o) {
             if ($scope.fileUpload && $scope.fileUpload.then) {
               $scope.fileUpload.then(function(result) {
-                scriptManagerService.uploadNewScript(result);
-                $scope.fileUpload = null;
-                scriptManagerService.getListOfScripts();
+            	  alert("File upload is not supported in this demo.");
+//                scriptManagerService.uploadNewScript(result);
+//                $scope.fileUpload = null;
+//                scriptManagerService.getListOfScripts();
               });
             }
           }, true);
