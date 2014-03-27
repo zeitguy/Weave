@@ -346,7 +346,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			public function drawAnnuliCircles():void
 			{
-
 				var probeKeySet:IKeySet = (mainLayerSettings.probeFilter.internalObject) as IKeySet;
 				if (!probeKeySet)
 					return;	

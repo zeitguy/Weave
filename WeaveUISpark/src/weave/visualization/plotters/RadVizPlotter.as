@@ -179,7 +179,7 @@ package weave.visualization.plotters
 				
 				for each(var key:IQualifiedKey in keys)
 				{
-					outerRadii.push(getOuterRadius(key));
+					outerRadii.push(getOuterRadius(key, pointSensitivityColumns, annCenterColumns, columns));
 				}
 				
 				if(keys.length){
@@ -900,18 +900,18 @@ package weave.visualization.plotters
 			}
 		}
 		
-		private function getInnerRadius(key:IQualifiedKey):Number
+		private function getInnerRadius(key:IQualifiedKey, fixedCols:Array, movingCols:Array, allColumns:LinkableHashMap):Number
 		{
 			
 			var normArray:Array = (localNormalization.value) ? keyNormMap[key] : keyGlobalNormMap[key];
 			var column:IAttributeColumn;
 			var stats:IColumnStatistics;
 			var value:Number;
-			var psCols:Array = pointSensitivityColumns;
+			var psCols:Array = movingCols;
 			var cols:Array = columns.getObjects();
-			var annCols:Array = annCenterColumns;
+			var annCols:Array = fixedCols;
 			var linkLengths:Array = [];
-			var eta:Number = getEtaTerm(key);
+			var eta:Number = getEtaTerm(key, allColumns);
 			
 			// compute the link lengths for a record
 			for (var i:Number = 0; i < psCols.length; i++)
@@ -952,17 +952,17 @@ package weave.visualization.plotters
 			return innerRadius;
 		}
 			
-		private function getOuterRadius(key:IQualifiedKey):Number
+		private function getOuterRadius(key:IQualifiedKey, fixedCols:Array, movingCols:Array, allColumns:LinkableHashMap):Number
 		{
 			var normArray:Array = (localNormalization.value) ? keyNormMap[key] : keyGlobalNormMap[key];
 			var column:IAttributeColumn;
 			var stats:IColumnStatistics;
 			var value:Number;
-			var psCols:Array = pointSensitivityColumns;
-			var cols:Array = columns.getObjects();
-			var annCols:Array = annCenterColumns;
+			var psCols:Array = fixedCols;
+			var cols:Array = allColumns.getObjects();
+			var annCols:Array = movingCols;
 			var linkLengths:Array = [];
-			var eta:Number = getEtaTerm(key);
+			var eta:Number = getEtaTerm(key, allColumns);
 			
 			// compute the link lengths for a record
 			for (var i:Number = 0; i < psCols.length; i++)
@@ -992,13 +992,11 @@ package weave.visualization.plotters
 			return outerRadius;
 		}
 		
-		private function getEtaTerm(key:IQualifiedKey):Number
+		private function getEtaTerm(key:IQualifiedKey, allColumns:LinkableHashMap):Number
 		{
 			var eta:Number = 0;
 			var normArray:Array = (localNormalization.value) ? keyNormMap[key] : keyGlobalNormMap[key];
-			var psCols:Array = pointSensitivityColumns;
-			var cols:Array = columns.getObjects();
-			var annCols:Array = annCenterColumns;
+			var cols:Array = allColumns.getObjects();
 			
 			for (var i:Number = 0; i < cols.length; i++)
 			{
@@ -1014,7 +1012,7 @@ package weave.visualization.plotters
 			return eta;
 		}
 		
-		private function getAnnulusCenter(key:IQualifiedKey):Point
+		private function getAnnulusCenter(key:IQualifiedKey, fixedCols:Array, movingCols:Array, allColumns:LinkableHashMap):Point
 		{
 			var normArray:Array = (localNormalization.value) ? keyNormMap[key] : keyGlobalNormMap[key];
 			var column:IAttributeColumn;
@@ -1024,11 +1022,11 @@ package weave.visualization.plotters
 			var annCenterY:Number;
 			var name:String;
 			var anchor:AnchorPoint;
-			var psCols:Array = pointSensitivityColumns;
-			var cols:Array = columns.getObjects();
-			var annCols:Array = annCenterColumns;
+			var psCols:Array = movingCols;
+			var cols:Array = allColumns.getObjects();
+			var annCols:Array = fixedCols;
 			
-			var eta:Number = getEtaTerm(key);
+			var eta:Number = getEtaTerm(key, allColumns);
 			//trace(linkLengths);
 			// compute the annulus center for a record
 			for (var i:Number = 0; i < annCols.length; i++)
@@ -1041,7 +1039,7 @@ package weave.visualization.plotters
 				{
 					value = 0
 				}
-				name = normArray ? columnTitleMap[column] : columns.getName(column);
+				name = normArray ? columnTitleMap[column] : allColumns.getName(column);
 				anchor = anchors.getObject(name) as AnchorPoint;
 				annCenterX += (value * anchor.x.value)/eta;
 				annCenterY += (value * anchor.y.value)/eta;
@@ -1203,9 +1201,43 @@ package weave.visualization.plotters
 		
 		private var _algorithm:ILayoutAlgorithm = newSpatialProperty(GreedyLayoutAlgorithm);
 		
-		public function reverseEngineer(key:IQualifiedKey, point:Point):void
+		public function reverseEngineer(key:IQualifiedKey, target:Point):void
 		{
-			trace(key, point);	
+			var mov_cols = pointSensitivityColumns;
+			var fixed_cols = annCenterColumns;
+			
+			var ann_center:Point = getAnnulusCenter(key, fixed_cols, mov_cols, columns);
+			var ann_inner_radius:Number = getInnerRadius(key, fixed_cols, mov_cols, columns);
+			var ann_outer_radius:Number = getOuterRadius(key, fixed_cols, mov_cols, columns);
+			
+			var target_current:Point = target;
+			
+			var current_link:int = mov_cols.length - 1;
+			
+			var da_positions:Array = [];
+
+			
+			var current_circle_center:Point = target_current;
+			var current_circle_radius:Number = current_link;
+			
+			var intersections:Array = annulus_circle_intersection(ann_center, ann_inner_radius, ann_outer_radius, current_circle_center, current_circle_radius);
+			
+			var target_next:Point = select_intersection(intersections);
+			
+			
+			
+			
+			trace(key, target);	
+		}
+		
+		private function annulus_circle_intersection(ann_center:Point, ann_inner_radius:Number, ann_outer_radius:Number, circle_center:Point, circle_radius:Number)
+		{
+			
+		}
+		
+		private function select_intersection(intersections:Array):Point
+		{
+			
 		}
 		
 		// algorithms
