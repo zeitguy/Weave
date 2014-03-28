@@ -14,5 +14,6 @@ public class AwsContextParams extends WeaveContextParams
 	public static String getAwsConfigPath()
 	{
 		return awsConfigPath;
+		
 	}
 }
