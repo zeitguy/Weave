@@ -1203,19 +1203,39 @@ package weave.visualization.plotters
 		
 		public function reverseEngineer(key:IQualifiedKey, target:Point):void
 		{
-			var mov_cols = pointSensitivityColumns;
-			var fixed_cols = annCenterColumns;
+			var columns:LinkableHashMap = columns;
+			var eta:Number = getEtaTerm(key, columns);
+			var normArray:Array = (localNormalization.value) ? keyNormMap[key] : keyGlobalNormMap[key];
+			var column:IAttributeColumn;
+			var stats:IColumnStatistics;
+			var value:Number;
+			var linkLengths:Array = [];
+			var mov_cols:Array = pointSensitivityColumns;
+			var fixed_cols:Array = annCenterColumns;
+			
+			var da_positions:Array = [];
+			
+			// compute the link lengths for a record
+			for (var i:Number = 0; i < mov_cols.length; i++)
+			{
+				column = mov_cols[i];
+				stats = WeaveAPI.StatisticsCache.getColumnStatistics(column);
+				value = normArray ? normArray[i] : stats.getNorm(key);
+				if(isNaN(value))
+				{
+					value = 0;	
+				}
+				linkLengths.push(value/eta);
+			}
+			
+			var target_current:Point = target;
+			var current_link:int = 	linkLengths.pop();
+			mov_cols.pop();
 			
 			var ann_center:Point = getAnnulusCenter(key, fixed_cols, mov_cols, columns);
 			var ann_inner_radius:Number = getInnerRadius(key, fixed_cols, mov_cols, columns);
 			var ann_outer_radius:Number = getOuterRadius(key, fixed_cols, mov_cols, columns);
 			
-			var target_current:Point = target;
-			
-			var current_link:int = mov_cols.length - 1;
-			
-			var da_positions:Array = [];
-
 			
 			var current_circle_center:Point = target_current;
 			var current_circle_radius:Number = current_link;
@@ -1224,21 +1244,132 @@ package weave.visualization.plotters
 			
 			var target_next:Point = select_intersection(intersections);
 			
+			while(linkLengths.length > 2)
+			{
+				target_current = target_next;
+				
+				ann_center = getAnnulusCenter(key, fixed_cols, mov_cols, columns);
+				ann_inner_radius = getInnerRadius(key, fixed_cols, mov_cols, columns);
+				ann_outer_radius = getOuterRadius(key, fixed_cols, mov_cols, columns);
+				current_circle_center = target_current;
+				current_circle_radius = current_link;
+				
+				intersections = annulus_circle_intersection(ann_center, ann_inner_radius, ann_outer_radius, current_circle_center, current_circle_radius);
+				target_next = select_intersection(intersections);
+				
+				da_positions.push(da_angle(target_next, target_current));
+					
+				current_link = linkLengths.pop();
+				mov_cols.pop();
+			}
 			
-			
-			
-			trace(key, target);	
+			if(linkLengths.length == 2)
+			{
+				target_current = target_next;
+				
+				mov_cols.pop();
+				var circle_a_center:Point = getAnnulusCenter(key, fixed_cols, mov_cols, columns);
+				var circle_a_radius:Number = linkLengths[0];
+				
+				var circle_b_center:Point = target_current;
+				var circle_b_radius:Number = linkLengths[1];
+				
+				intersections = circle_circle_intersection(circle_a_center, circle_a_radius, circle_b_center, circle_b_radius);
+				target_next = select_intersection(intersections);
+				da_positions.push(da_angle(circle_a_center, target_next));			
+				
+			}
 		}
 		
-		private function annulus_circle_intersection(ann_center:Point, ann_inner_radius:Number, ann_outer_radius:Number, circle_center:Point, circle_radius:Number)
+		private function annulus_circle_intersection(ann_center:Point, ann_inner_radius:Number, ann_outer_radius:Number, circle_center:Point, circle_radius:Number):Array
 		{
+			var intersections:Array = [];
+			var inner_intersection:Array = circle_circle_intersection(ann_center, ann_inner_radius, circle_center, circle_radius);
+			var outer_intersection:Array = circle_circle_intersection(ann_center, ann_outer_radius, circle_center, circle_radius);
 			
+			intersections = inner_intersection.concat(outer_intersection);
+			
+			return intersections;
 		}
 		
 		private function select_intersection(intersections:Array):Point
 		{
+			var number_intersections:Number = intersections.length;
+			var r:int = Math.floor(Math.random()*number_intersections) as int;
+			
+			return intersections[r];
+		}
+		
+		private function circle_circle_intersection(center1:Point, radius1:Number, center2:Point, radius2:Number):Array
+		{
+			// if either of the circles is simply a point, then return no intersections
+			// this may happen for the inner circle of the annulus.
+			if(!radius1 || !radius2)
+			{
+				return [];
+			}
+			
+			// dx and dy are the vertical and horizontal distances between the circle centers.
+			var dx:Number = center1.x - center2.x;
+			var dy:Number = center1.y - center2.y;
+			
+			// Determine the straight-line distance between the centers.
+			var d:Number = Math.sqrt(dx*dx + dy*dy);
+			
+			if(d - (radius1 + radius2) > 0.000001 && Math.abs(d - (radius1 + radius2)) > 0.000001) {
+				// no solutions. circles do not intersect
+				return [];
+			}
+			
+			if(d - (radius1 - radius2) < 0.000001 && Math.abs(d - (radius1 - radius2)) > 0.000001) {
+				// no solutions. one circle is contained in the other
+				return [];
+			}
+			
+			// a is the point where the line through the circle
+			// intersection points crosses the line between the circle
+			// centers.  
+			
+			//Determine the distance from point 0 to a.
+			var a:Number = ((radius1 * radius1) - (radius2 * radius2) + (d * d)) / (2 * d);
+			
+			// Determine the coordinates of a. 
+			var x2:Number = center1.x + (dx * a/d);
+			var y2:Number = center1.y + (dy * a/d);
+			
+			// Determine the distance from a to either of the
+			// intersection points.
+			
+			var h:Number = 0;
+			var h_temp:Number = radius1*radius1 - a * a;
+			if(h_temp < 0.000001)
+			{
+				h = 0;
+			}
+			else 
+			{
+				h = Math.sqrt(h_temp);	
+			}
+			
+			// Now determine the offsets of the intersection points from a.
+			var rx = -dy * h/d;
+			var ry = dx * h/d;
+			
+			// Determine the absolute intersection points.
+			
+			var xi:Number = x2 + rx;
+			var xi_prime = x2 - rx;
+			var yi = y2 + ry;
+			var yi_prime = y2 - ry;
+			
+			return [[xi, yi], [xi_prime, yi_prime]];
+		}
+		
+		private function da_angle(pointA:Point, pointB:Point):Number
+		{
 			
 		}
+			
 		
 		// algorithms
 		[Bindable] public var algorithms:Array = [RANDOM_LAYOUT, GREEDY_LAYOUT, NEAREST_NEIGHBOR, INCREMENTAL_LAYOUT, BRUTE_FORCE];
